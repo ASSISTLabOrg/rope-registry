@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/kinds/ensemble_fusion_decoder.schema.json",
+  "title": "ROPE manifest kind: ensemble_fusion_decoder",
+  "description": "Shape of the manifest.ensemble_fusion_decoder block. Validate this against manifest['ensemble_fusion_decoder'], not against the whole manifest document.",
+  "type": "object",
+  "$defs": {
+    "backend": {
+      "type": "string",
+      "enum": ["onnx", "libtorch"]
+    },
+    "base_model": {
+      "type": "object",
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "backend": { "$ref": "#/$defs/backend" },
+        "architecture": { "type": "string", "minLength": 1 },
+        "inter_op_threads": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["file", "backend", "architecture", "inter_op_threads"],
+      "additionalProperties": false
+    },
+    "meta_model": {
+      "type": "object",
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "backend": { "$ref": "#/$defs/backend" }
+      },
+      "required": ["file", "backend"],
+      "additionalProperties": false
+    },
+    "decoder_stage": {
+      "type": "object",
+      "properties": {
+        "backends": {
+          "type": "object",
+          "properties": {
+            "onnx": { "type": "string", "minLength": 1 },
+            "libtorch": { "type": "string", "minLength": 1 }
+          },
+          "anyOf": [
+            { "required": ["onnx"] },
+            { "required": ["libtorch"] }
+          ],
+          "additionalProperties": false
+        },
+        "stats": { "type": "string", "minLength": 1 },
+        "alt_start": { "type": "integer", "minimum": 0 },
+        "alt_end": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["backends", "stats", "alt_start", "alt_end"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "seq_len": { "type": "integer", "minimum": 1 },
+    "decode_batch_size": { "type": "integer", "minimum": 1 },
+    "base_models": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/base_model" },
+      "minItems": 1
+    },
+    "meta_model": { "$ref": "#/$defs/meta_model" },
+    "decoders": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/decoder_stage" },
+      "minItems": 1,
+      "description": "Altitude-range decoder stages. Stages must exactly tile the full altitude range with no gaps or overlaps; that constraint is enforced by the consuming application, not by this schema."
+    }
+  },
+  "required": ["seq_len", "decode_batch_size", "base_models", "meta_model", "decoders"],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "seq_len": 3,
+      "decode_batch_size": 120,
+      "base_models": [
+        { "file": "base_model_00.onnx", "backend": "onnx", "architecture": "lstm", "inter_op_threads": 1 },
+        { "file": "base_model_10.onnx", "backend": "onnx", "architecture": "transformer", "inter_op_threads": 2 }
+      ],
+      "meta_model": { "file": "meta_model.onnx", "backend": "onnx" },
+      "decoders": [
+        {
+          "backends": { "onnx": "coae_decoder.onnx", "libtorch": "coae_decoder.pt" },
+          "stats": "stats_cae.bin",
+          "alt_start": 0,
+          "alt_end": 45
+        }
+      ]
+    }
+  ]
+}

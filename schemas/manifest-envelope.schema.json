@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/manifest-envelope.schema.json",
+  "title": "ROPE model manifest envelope",
+  "description": "Top-level, kind-agnostic fields of a per-model model_manifest.json. Validate this against the manifest's top-level fields; validate manifest[manifest.kind] separately against the matching schemas/kinds/<kind>.schema.json.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "kind": { "type": "string", "minLength": 1 },
+    "runtime_requirements": {
+      "type": "object",
+      "properties": {
+        "onnxruntime": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+        "libtorch": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" }
+      },
+      "additionalProperties": false
+    },
+    "latent_dim": { "type": "integer", "minimum": 1 },
+    "driver_columns": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "driver_source": { "type": "string", "minLength": 1 },
+    "ic_grid_axes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "runtime_requirements",
+    "latent_dim",
+    "driver_columns",
+    "driver_source",
+    "ic_grid_axes"
+  ],
+  "additionalProperties": true,
+  "examples": [
+    {
+      "schema_version": 1,
+      "kind": "ensemble_fusion_decoder",
+      "runtime_requirements": { "onnxruntime": "1.25", "libtorch": "2.7" },
+      "latent_dim": 10,
+      "driver_columns": ["f10", "kp", "t1", "t2", "t3", "t4"],
+      "driver_source": "celestrak_sw",
+      "ic_grid_axes": ["f10", "kp"]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+[
+  {
+    "kind": "ensemble_fusion_decoder",
+    "schema": "schemas/kinds/ensemble_fusion_decoder.schema.json",
+    "status": "stable"
+  }
+]
