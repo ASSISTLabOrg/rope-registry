@@ -91,3 +91,36 @@ def test_invalid_kind_bad_enum_fails(kind_schema):
     manifest = _load_json(FIXTURES_DIR / "invalid_kind_bad_enum.json")
     with pytest.raises(ValidationError):
         Draft202012Validator(kind_schema).validate(manifest["ensemble_fusion_decoder"])
+
+
+def test_valid_manifest_with_validation_fixture_validates(envelope_schema, kind_schema):
+    manifest = _load_json(FIXTURES_DIR / "valid_manifest_with_validation.json")
+    Draft202012Validator(envelope_schema).validate(manifest)
+    Draft202012Validator(kind_schema).validate(manifest["ensemble_fusion_decoder"])
+
+
+def test_invalid_envelope_missing_validated_fails(envelope_schema):
+    manifest = _load_json(FIXTURES_DIR / "invalid_envelope_missing_validated.json")
+    with pytest.raises(ValidationError):
+        Draft202012Validator(envelope_schema).validate(manifest)
+
+
+def test_invalid_envelope_validation_bad_type_fails(envelope_schema):
+    manifest = _load_json(FIXTURES_DIR / "invalid_envelope_validation_bad_type.json")
+    with pytest.raises(ValidationError):
+        Draft202012Validator(envelope_schema).validate(manifest)
+
+
+def test_invalid_envelope_validated_true_no_validation_fails(envelope_schema):
+    manifest = _load_json(FIXTURES_DIR / "invalid_envelope_validated_true_no_validation.json")
+    with pytest.raises(ValidationError):
+        Draft202012Validator(envelope_schema).validate(manifest)
+
+
+def test_validated_false_without_validation_object_is_allowed(envelope_schema):
+    """Exercises the if/then conditional in the direction that must NOT fail:
+    validated:false with no validation object (freshly trained, not yet benchmarked)."""
+    manifest = _load_json(FIXTURES_DIR / "valid_manifest.json")
+    assert manifest["validated"] is False
+    assert "validation" not in manifest
+    Draft202012Validator(envelope_schema).validate(manifest)

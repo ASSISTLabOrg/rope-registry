@@ -5,6 +5,7 @@
     "onnxruntime": "1.25",
     "libtorch": "2.7"
   },
+  "latent_dim": 10,
   "driver_columns": ["f10", "kp", "t1", "t2", "t3", "t4"],
   "driver_source": "celestrak_sw",
   "validated": false,
@@ -23,7 +24,6 @@
         "alt_start": 0,
         "alt_end": 45
       }
-    ],
-    "ic": { "kind": "ic_lookup_table", "params": { "grid_axes": ["f10", "kp"], "file": "ic_table.icbin" } }
+    ]
   }
 }

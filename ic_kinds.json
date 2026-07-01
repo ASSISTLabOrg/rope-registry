@@ -1,0 +1,7 @@
+[
+  {
+    "kind": "ic_lookup_table",
+    "schema": "schemas/ic/ic_lookup_table.schema.json",
+    "status": "stable"
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "content_version": 1,
+  "cases": [
+    {
+      "id": "case_001",
+      "description": "Placeholder case",
+      "start": "2018-01-01 00:00:00",
+      "end": "2018-01-05 00:00:00",
+      "data_refs": { "reference_density_csv": "placeholder_truth.csv" }
+    }
+  ],
+  "checks": [
+    {
+      "id": "check_bad_altitude",
+      "kind": "lonlat_density_plot",
+      "params": { "altitudes_km": [50] }
+    },
+    {
+      "id": "check_missing_truth_ref",
+      "kind": "rmse_timeseries",
+      "params": {}
+    },
+    {
+      "id": "check_bad_threshold_shape",
+      "kind": "rmse_timeseries",
+      "params": { "truth_ref": "reference_density_csv", "threshold": {} }
+    }
+  ]
+}

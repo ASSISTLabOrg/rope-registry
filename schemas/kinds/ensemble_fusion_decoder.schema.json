@@ -50,6 +50,22 @@
       },
       "required": ["backends", "stats", "alt_start", "alt_end"],
       "additionalProperties": false
+    },
+    "ic_block": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Must appear in ic_kinds.json. Not enforceable by this schema — see tests/ic_block_test.py."
+        },
+        "params": {
+          "type": "object",
+          "description": "Kind-specific parameter block, validated in a third validation stage against schemas/ic/<kind>.schema.json — the same two-stage kind/params pattern used for the top-level manifest kind and for validation checks[].kind, applied one level deeper."
+        }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -66,9 +82,10 @@
       "items": { "$ref": "#/$defs/decoder_stage" },
       "minItems": 1,
       "description": "Altitude-range decoder stages. Stages must exactly tile the full altitude range with no gaps or overlaps; that constraint is enforced by the consuming application, not by this schema."
-    }
+    },
+    "ic": { "$ref": "#/$defs/ic_block" }
   },
-  "required": ["seq_len", "decode_batch_size", "base_models", "meta_model", "decoders"],
+  "required": ["seq_len", "decode_batch_size", "base_models", "meta_model", "decoders", "ic"],
   "additionalProperties": false,
   "examples": [
     {
@@ -86,7 +103,11 @@
           "alt_start": 0,
           "alt_end": 45
         }
-      ]
+      ],
+      "ic": {
+        "kind": "ic_lookup_table",
+        "params": { "grid_axes": ["f10", "kp"], "file": "ic_table.icbin" }
+      }
     }
   ]
 }

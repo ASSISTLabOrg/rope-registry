@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "suite_content_version": 1,
+  "generated_at": "2026-06-15T00:00:00Z",
+  "results": [
+    {
+      "case_id": "case_001",
+      "check_id": "check_001",
+      "value": "not-a-number",
+      "unit": "kg/m^3",
+      "plots": [],
+      "passed": true
+    }
+  ]
+}

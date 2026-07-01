@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "content_version": 1,
+  "cases": [
+    {
+      "id": "case_001",
+      "description": "Duplicate id #1 — schema-valid, but case ids must be unique (pytest cross-check, not JSON-Schema-expressible)",
+      "start": "2017-01-01 00:00:00",
+      "end": "2017-01-05 00:00:00"
+    },
+    {
+      "id": "case_001",
+      "description": "Duplicate id #2 — same id as the case above",
+      "start": "2020-01-01 00:00:00",
+      "end": "2020-01-05 00:00:00"
+    },
+    {
+      "id": "case_002",
+      "description": "Case with no data_refs at all",
+      "start": "2021-01-01 00:00:00",
+      "end": "2021-01-05 00:00:00"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check_missing_data_ref",
+      "kind": "rmse_timeseries",
+      "applies_to": ["case_002"],
+      "params": { "truth_ref": "reference_density_csv" }
+    },
+    {
+      "id": "check_unknown_kind",
+      "kind": "nonexistent_kind",
+      "params": {}
+    },
+    {
+      "id": "check_unknown_applies_to",
+      "kind": "lonlat_density_plot",
+      "applies_to": ["case_999"],
+      "params": { "altitudes_km": [300] }
+    }
+  ]
+}

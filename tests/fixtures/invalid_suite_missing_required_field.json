@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "content_version": 1,
+  "cases": [
+    {
+      "id": "case_001",
+      "description": "Placeholder case missing its end date",
+      "start": "2018-01-01 00:00:00"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check_001",
+      "kind": "lonlat_density_plot",
+      "params": { "altitudes_km": [200] }
+    }
+  ]
+}

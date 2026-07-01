@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/ic/ic_lookup_table.schema.json",
+  "title": "ROPE IC block kind: ic_lookup_table",
+  "description": "Shape of the ic.params block when ic.kind == 'ic_lookup_table'. A static (F10, Kp)-indexed lookup table of latent initial-condition coefficients, bilinear interpolation with nearest-neighbour fallback outside the grid hull (see docs/data-sources.md). The table file is a per-model artifact living in the model's exported_dir alongside its other artifacts, not the global paths.ic_csv server-config path.",
+  "type": "object",
+  "properties": {
+    "grid_axes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "file": { "type": "string", "minLength": 1 }
+  },
+  "required": ["grid_axes", "file"],
+  "additionalProperties": false,
+  "examples": [
+    { "grid_axes": ["f10", "kp"], "file": "ic_table.icbin" }
+  ]
+}

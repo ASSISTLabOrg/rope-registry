@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/checks/satellite_lineout.schema.json",
+  "title": "ROPE validation check kind: satellite_lineout",
+  "description": "Shape of a check's params block when check.kind == 'satellite_lineout'. Produces both a trace plot (model output vs. satellite-measured values along the satellite's track, over the case's time window) and a scalar RMSE-along-track. `truth_ref` names a key expected in the case's data_refs map holding the satellite track data (not a path itself — see validation-suite.schema.json's description and tests/validation_suite_test.py::test_checks_data_refs_present_on_applicable_cases for how this is enforced).",
+  "type": "object",
+  "$defs": {
+    "threshold": {
+      "type": "object",
+      "properties": {
+        "max": { "type": "number" },
+        "min": { "type": "number" }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    }
+  },
+  "properties": {
+    "truth_ref": { "type": "string", "minLength": 1 },
+    "variable": {
+      "type": "string",
+      "enum": ["density", "uncertainty"],
+      "default": "density",
+      "description": "Which grid variable (per docs/grid.md) this check scores. Defaults to density; uncertainty is included so a future check can validate uncertainty calibration without a schema change."
+    },
+    "threshold": {
+      "$ref": "#/$defs/threshold",
+      "description": "Optional pass/fail bound(s) on the computed RMSE-along-track value. Pass requires value <= max (when max present) AND value >= min (when min present); at least one of max/min must be present. Evaluation is performed by whatever runs the check, not by this schema."
+    },
+    "unit": { "type": "string", "minLength": 1 }
+  },
+  "required": ["truth_ref"],
+  "additionalProperties": false,
+  "examples": [
+    { "truth_ref": "satellite_track", "variable": "density", "unit": "kg/m^3" }
+  ]
+}

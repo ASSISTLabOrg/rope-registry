@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/checks/lonlat_density_plot.schema.json",
+  "title": "ROPE validation check kind: lonlat_density_plot",
+  "description": "Shape of a check's params block when check.kind == 'lonlat_density_plot'. Renders a lon/lat density map at each requested altitude for a representative time within the case's window. Pure visualization — produces plot image(s) only, no scalar score. `value`/`unit`/`passed` in the resulting validation-report entries are always null for this kind.",
+  "type": "object",
+  "properties": {
+    "altitudes_km": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 100, "maximum": 980 },
+      "minItems": 1
+    }
+  },
+  "required": ["altitudes_km"],
+  "additionalProperties": false,
+  "examples": [
+    { "altitudes_km": [200, 400, 600] }
+  ]
+}

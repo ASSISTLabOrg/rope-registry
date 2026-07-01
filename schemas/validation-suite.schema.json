@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/validation-suite.schema.json",
+  "title": "ROPE validation suite",
+  "description": "A grid of validation cases (specific space-weather time windows) crossed with checks (error metrics and/or plots). Validate this against the whole document's top-level fields; validate each checks[i].params separately against the matching schemas/checks/<kind>.schema.json, resolved via check_kinds.json — the same two-stage pattern used for model_manifest.json (see manifest-envelope.schema.json). Whether every case in a check's resolved applies_to set actually supplies the data_refs key the check's params.truth_ref names is NOT enforced by this schema — see tests/validation_suite_test.py::test_checks_data_refs_present_on_applicable_cases (static) and the benchmarking tool that runs suites (runtime) for enforcement.",
+  "type": "object",
+  "$defs": {
+    "case": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "start": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$" },
+        "end": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$" },
+        "data_refs": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 1 },
+          "description": "Named pointers to reference/truth data files this case supplies (e.g. {\"satellite_track\": \"...\"}). Keys are matched against a check's params.truth_ref by name."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Purely descriptive; not consumed by any check or tooling today. Lets cases be grouped/filtered later (e.g. [\"storm\", \"quiet\", \"solar-max\"]) without a migration pass once the suite grows past a handful of placeholder cases."
+        }
+      },
+      "required": ["id", "description", "start", "end"],
+      "additionalProperties": false
+    },
+    "check": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Must appear in check_kinds.json. Not enforceable by this schema — see tests/validation_suite_test.py."
+        },
+        "applies_to": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "description": "List of case ids this check runs against. Absence means \"all cases\" — adding a new case later implicitly expands the scope of any check that omits this field."
+        },
+        "params": {
+          "type": "object",
+          "description": "Kind-specific parameter block, validated in a second stage against schemas/checks/<kind>.schema.json."
+        }
+      },
+      "required": ["id", "kind", "params"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Tracks the JSON shape of this document."
+    },
+    "content_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "A separate, human-bumped counter tracking the suite's content (cases/checks), incremented whenever content changes even though schema_version stays put. Only meaningful for comparison between two suite documents sharing the same schema_version — if schema_version ever differs, content_version comparisons are undefined and should be treated as \"needs re-validation\", not compared numerically. This is the value a manifest's validation.suite_content_version is compared against to detect staleness."
+    },
+    "cases": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/case" },
+      "minItems": 1
+    },
+    "checks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/check" },
+      "minItems": 1
+    }
+  },
+  "required": ["schema_version", "content_version", "cases", "checks"],
+  "additionalProperties": true,
+  "examples": [
+    {
+      "schema_version": 1,
+      "content_version": 1,
+      "cases": [
+        {
+          "id": "case_001",
+          "description": "Placeholder case — not a real event",
+          "start": "2018-06-01 00:00:00",
+          "end": "2018-06-05 00:00:00",
+          "tags": ["quiet"]
+        }
+      ],
+      "checks": [
+        {
+          "id": "check_001",
+          "kind": "lonlat_density_plot",
+          "params": { "altitudes_km": [200, 400, 600] }
+        }
+      ]
+    }
+  ]
+}

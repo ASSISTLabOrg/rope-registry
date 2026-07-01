@@ -22,10 +22,32 @@
       "minItems": 1
     },
     "driver_source": { "type": "string", "minLength": 1 },
-    "ic_grid_axes": {
-      "type": "array",
-      "items": { "type": "string", "minLength": 1 },
-      "minItems": 1
+    "validated": {
+      "type": "boolean",
+      "description": "Whether this model has been validated against a rope-registry validation suite. Set manually by a human after reviewing the full validation_report.json (including plots) — never written automatically by any benchmarking tool. If true, `validation` must be present (see the conditional below)."
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "suite_content_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The content_version (see validation-suite.schema.json) of the suite this model was validated against. Compare against the registry's current suite content_version to detect staleness; only meaningful when compared against a suite sharing the same schema_version."
+        },
+        "validated_at": { "type": "string", "format": "date-time" },
+        "report_file": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative filename of the validation_report.json artifact, living alongside this model's other exported artifacts (per docs/model-registry.md's flat exported_dir layout). Plot images referenced within that report live under a plots/ subfolder by convention."
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "Generic named-scalar map for quick human/CI scanning, e.g. {\"rmse_timeseries_case_003\": 4.8e-13}. Key names are check-id/case-id-dependent by convention, not schema-enforced."
+        }
+      },
+      "required": ["suite_content_version", "validated_at", "report_file", "summary"],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -35,9 +57,16 @@
     "latent_dim",
     "driver_columns",
     "driver_source",
-    "ic_grid_axes"
+    "validated"
   ],
   "additionalProperties": true,
+  "if": {
+    "properties": { "validated": { "const": true } },
+    "required": ["validated"]
+  },
+  "then": {
+    "required": ["validation"]
+  },
   "examples": [
     {
       "schema_version": 1,
@@ -46,7 +75,22 @@
       "latent_dim": 10,
       "driver_columns": ["f10", "kp", "t1", "t2", "t3", "t4"],
       "driver_source": "celestrak_sw",
-      "ic_grid_axes": ["f10", "kp"]
+      "validated": false
+    },
+    {
+      "schema_version": 1,
+      "kind": "ensemble_fusion_decoder",
+      "runtime_requirements": { "onnxruntime": "1.25", "libtorch": "2.7" },
+      "latent_dim": 10,
+      "driver_columns": ["f10", "kp", "t1", "t2", "t3", "t4"],
+      "driver_source": "celestrak_sw",
+      "validated": true,
+      "validation": {
+        "suite_content_version": 1,
+        "validated_at": "2026-06-15T00:00:00Z",
+        "report_file": "validation_report.json",
+        "summary": { "rmse_timeseries_case_003": 4.8e-13, "satellite_lineout_case_004": 6.2e-13 }
+      }
     }
   ]
 }

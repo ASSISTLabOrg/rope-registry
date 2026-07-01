@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/validation-report.schema.json",
+  "title": "ROPE validation report",
+  "description": "Output shape of running a validation-suite.schema.json document against a model. Deliberately a flat shape (not a second envelope/kind split) — kept simple since only three check kinds exist today.",
+  "type": "object",
+  "$defs": {
+    "result": {
+      "type": "object",
+      "properties": {
+        "case_id": { "type": "string", "minLength": 1 },
+        "check_id": { "type": "string", "minLength": 1 },
+        "value": {
+          "description": "A plain number for a single aggregate score, an object of named numbers for a check that produces several (e.g. per-altitude RMSE), or null for a plot-only check (e.g. lonlat_density_plot). threshold evaluation (in the check-kind schemas) is only defined for the plain-number case — a per-key threshold scheme is an explicit non-goal for now.",
+          "oneOf": [
+            { "type": "number" },
+            { "type": "object", "additionalProperties": { "type": "number" }, "minProperties": 1 },
+            { "type": "null" }
+          ]
+        },
+        "unit": { "type": ["string", "null"] },
+        "plots": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Relative paths (relative to this report file's own directory, i.e. the model's exported_dir), conventionally under a plots/ subfolder, e.g. \"plots/case_003_check_001_lonlat_400km.png\". May be empty."
+        },
+        "passed": {
+          "type": ["boolean", "null"],
+          "description": "Null when the check's kind/params defined no threshold."
+        }
+      },
+      "required": ["case_id", "check_id", "value", "unit", "plots", "passed"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "suite_content_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Copied from the content_version of the validation-suite document that was run. Compared against a manifest's validation.suite_content_version to detect staleness."
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "results": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/result" },
+      "minItems": 1
+    }
+  },
+  "required": ["schema_version", "suite_content_version", "generated_at", "results"],
+  "additionalProperties": true,
+  "examples": [
+    {
+      "schema_version": 1,
+      "suite_content_version": 1,
+      "generated_at": "2026-06-15T00:00:00Z",
+      "results": [
+        {
+          "case_id": "case_001",
+          "check_id": "check_001",
+          "value": null,
+          "unit": null,
+          "plots": ["plots/case_001_check_001_lonlat_400km.png"],
+          "passed": null
+        },
+        {
+          "case_id": "case_003",
+          "check_id": "check_002",
+          "value": 4.8e-13,
+          "unit": "kg/m^3",
+          "plots": [],
+          "passed": true
+        },
+        {
+          "case_id": "case_003",
+          "check_id": "check_003",
+          "value": 6.2e-13,
+          "unit": "kg/m^3",
+          "plots": ["plots/case_003_check_003_sat_lineout.png"],
+          "passed": null
+        }
+      ]
+    }
+  ]
+}
