@@ -11,8 +11,8 @@ schemas/ic/<kind>.schema.json           per-IC-kind params shape (nested inside 
 kinds.json                              index of known model kinds + stability status
 ic_kinds.json                           index of known IC kinds + stability status
 
-schemas/validation-suite.schema.json    shared cases[] / checks[] envelope
-schemas/checks/<kind>.schema.json       per-check-kind params shape
+schemas/validation-suite.schema.json    trivial checks[] envelope (each check is just {id, kind, ...})
+schemas/checks/<kind>.schema.json       per-check-kind field shape — independent of every other kind
 schemas/validation-report.schema.json   output shape of a suite run
 check_kinds.json                        index of known check kinds + stability status
 
@@ -32,7 +32,7 @@ Three steps:
 
 ### `validated` and `validation`
 
-`validated` (boolean) is required on every manifest, set manually by a human. If `validated` is `true`, `validation` is required (`if`/`then` conditional): `suite_content_version`, `validated_at`, `report_file`, `summary` (named-scalar map, e.g. `{"rmse_timeseries_case_003": 4.8e-13}`). `validated: false` with no `validation` object is valid.
+`validated` (boolean) is required on every manifest, set manually by a human. If `validated` is `true`, `validation` is required (`if`/`then` conditional): `suite_content_version`, `validated_at`, `report_file`, `summary` (every check's own output, keyed by check id — see "Validation suites" below). `validated: false` with no `validation` object is valid.
 
 ## Initial condition (IC) block
 
@@ -48,35 +48,36 @@ Current kind: `ic_lookup_table` — `params.grid_axes` (driver columns used as g
 
 ## Validation suites
 
-A grid of **cases** (`id`, `description`, `start`, `end`, optional `data_refs`, optional `tags`) crossed with **checks** (`id`, `kind`, optional `applies_to`, `params`).
+A validation suite is a **flat list of checks** — no grid, no cases, no cross-referencing. Each check is just `{"id": ..., "kind": ..., ...whatever fields that kind needs}`. Kinds are not required to agree with each other on field names, time representation, or output shape — `lonlat_density_plot` might use `time_point`/`time_window_hours`; `rmse_timeseries` uses `start`/`end`. Each `kind` maps to exactly one function in `rope-dev-tools`, and that kind's own schema (resolved via `check_kinds.json`) validates everything on the check object *besides* `id`/`kind`.
 
-Checks validate in two stages: the suite envelope (`schemas/validation-suite.schema.json`), then `checks[i].params` against `schemas/checks/<kind>.schema.json`, resolved via `check_kinds.json`. `applies_to` restricts a check to the listed case ids; omitted means all cases.
+Checks validate in two stages: the suite envelope (`schemas/validation-suite.schema.json` — just requires every check have `id` + `kind`), then the check's remaining fields against `schemas/checks/<kind>.schema.json`, resolved via `check_kinds.json`.
 
-Check kinds:
+Check kinds today:
 
-- `lonlat_density_plot` — lon/lat density map at given altitudes. `value`/`unit`/`passed` are always `null`.
-- `rmse_timeseries` — RMSE against a `data_refs`-referenced truth source over a case's duration.
-- `satellite_lineout` — trace plot + RMSE-along-track against a satellite track.
+- `lonlat_density_plot` — lon/lat density map at given altitudes, at a single `time_point` (forecasting a `time_window_hours`-long window ending there). Plot-only.
+- `rmse_timeseries` — RMSE against a `truth_csv` file over `start`/`end`.
+- `satellite_lineout` — trace plot + RMSE-along-track against a `satellite_track_csv` file over `start`/`end`.
 
-`rmse_timeseries`/`satellite_lineout` params: `truth_ref` (a `data_refs` key name), `variable` (`"density"` or `"uncertainty"`, default `"density"`), `threshold` (`{"max": ..., "min": ...}`, at least one required; pass requires `value <= max` and `value >= min`).
+Each of `truth_csv`/`satellite_track_csv` is a plain path (resolved relative to the suite JSON's own directory) — there is no shared "data_refs" indirection layer; every kind that needs a truth-data file just names that field itself.
 
-### The `data_refs` cross-check
+### Report output is generic too
 
-Enforced by `tests/validation_suite_test.py::test_checks_data_refs_present_on_applicable_cases` and by whatever tool runs a suite at runtime — not by JSON Schema.
+A validation report's `results[]` entries are `{"id", "kind", "output"}` — `output` is whatever that kind's function returned, any JSON-serializable value, no shape shared across kinds (a plot-only kind might return `{"plots": [...]}`; a metric kind might return `{"value", "unit", "passed"}`). A dict output containing `"passed": false` is treated as a check failure by CLI tooling; anything else is informational only.
 
 ### `content_version` vs `schema_version`
 
-`schema_version` tracks document shape. `content_version` tracks content (`cases`/`checks`), bumped on any content edit. A manifest's `validation.suite_content_version` is compared against a suite's current `content_version`. Only comparable between suites sharing the same `schema_version`.
+`schema_version` tracks document shape. `content_version` tracks content (`checks`), bumped on any content edit. A manifest's `validation.suite_content_version` is compared against a suite's current `content_version`. Only comparable between suites sharing the same `schema_version`.
 
 ### Plot file location
 
-Plots live under `plots/` inside the model's `exported_dir`, listed in the report's `plots` array. Not duplicated in the manifest.
+Plots live under `plots/` inside the model's `exported_dir`, listed wherever a check's own `output` references them. Not duplicated in the manifest.
 
 ### Adding a new check kind
 
-1. Add `schemas/checks/<new_kind>.schema.json`.
-2. Add an entry to `check_kinds.json` with `"status": "draft"`.
-3. Flip to `"stable"` once a consuming tool implements dispatch for the kind.
+Exactly two steps — nothing else needs to change:
+
+1. Write the function in `rope-dev-tools` (whatever fields it needs, whatever it returns) and register it under a kind name.
+2. Add `schemas/checks/<new_kind>.schema.json` describing those same fields here, plus an entry to `check_kinds.json` with `"status": "draft"`. Flip to `"stable"` once the function is implemented and in use.
 
 ### Kind registries
 

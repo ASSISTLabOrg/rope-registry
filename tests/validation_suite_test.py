@@ -93,7 +93,8 @@ def test_check_schema_examples_validate(kind_name, check_kinds):
 
 
 # ---------------------------------------------------------------------------
-# Fixture: valid_validation_suite.json
+# Fixture: valid_validation_suite.json — each check's own fields (minus
+# id/kind) validate against its kind's schema, resolved via check_kinds.json.
 # ---------------------------------------------------------------------------
 
 def test_valid_validation_suite_fixture_validates(suite_schema, check_kinds):
@@ -101,7 +102,8 @@ def test_valid_validation_suite_fixture_validates(suite_schema, check_kinds):
     Draft202012Validator(suite_schema).validate(suite)
     for check in suite["checks"]:
         kind_schema = _check_kind_schema(check["kind"], check_kinds)
-        Draft202012Validator(kind_schema).validate(check["params"])
+        fields = {k: v for k, v in check.items() if k not in ("id", "kind")}
+        Draft202012Validator(kind_schema).validate(fields)
 
 
 def test_valid_validation_report_fixture_validates(report_schema):
@@ -123,24 +125,27 @@ def test_invalid_check_params_bad_altitude_fails(check_kinds):
     suite = _load_json(FIXTURES_DIR / "invalid_check_params.json")
     check = next(c for c in suite["checks"] if c["id"] == "check_bad_altitude")
     kind_schema = _check_kind_schema(check["kind"], check_kinds)
+    fields = {k: v for k, v in check.items() if k not in ("id", "kind")}
     with pytest.raises(ValidationError):
-        Draft202012Validator(kind_schema).validate(check["params"])
+        Draft202012Validator(kind_schema).validate(fields)
 
 
-def test_invalid_check_params_missing_truth_ref_fails(check_kinds):
+def test_invalid_check_params_missing_truth_csv_fails(check_kinds):
     suite = _load_json(FIXTURES_DIR / "invalid_check_params.json")
-    check = next(c for c in suite["checks"] if c["id"] == "check_missing_truth_ref")
+    check = next(c for c in suite["checks"] if c["id"] == "check_missing_truth_csv")
     kind_schema = _check_kind_schema(check["kind"], check_kinds)
+    fields = {k: v for k, v in check.items() if k not in ("id", "kind")}
     with pytest.raises(ValidationError):
-        Draft202012Validator(kind_schema).validate(check["params"])
+        Draft202012Validator(kind_schema).validate(fields)
 
 
 def test_invalid_check_params_bad_threshold_shape_fails(check_kinds):
     suite = _load_json(FIXTURES_DIR / "invalid_check_params.json")
     check = next(c for c in suite["checks"] if c["id"] == "check_bad_threshold_shape")
     kind_schema = _check_kind_schema(check["kind"], check_kinds)
+    fields = {k: v for k, v in check.items() if k not in ("id", "kind")}
     with pytest.raises(ValidationError):
-        Draft202012Validator(kind_schema).validate(check["params"])
+        Draft202012Validator(kind_schema).validate(fields)
 
 
 def test_invalid_report_wrong_type_fails(report_schema):
@@ -150,27 +155,17 @@ def test_invalid_report_wrong_type_fails(report_schema):
 
 
 # ---------------------------------------------------------------------------
-# Cross-checks — NOT jsonschema.ValidationError checks. These are whole-document,
-# cross-referencing rules (duplicate ids, applies_to resolution, data_refs
-# presence, kind-registry membership) that JSON Schema cannot express as a
-# local constraint — same category as the decoder-altitude-tiling constraint
-# already documented as unenforceable in ensemble_fusion_decoder.schema.json.
-# Enforced here as plain Python assertions instead.
+# Cross-checks — NOT jsonschema.ValidationError checks. Whole-document,
+# cross-referencing rules (duplicate ids, unknown kinds) that JSON Schema
+# cannot express as a local constraint. Enforced here as plain Python
+# assertions instead — this is now a much smaller set than before, since
+# checks no longer share a data_refs/applies_to/time-shape convention to
+# cross-check against.
 # ---------------------------------------------------------------------------
 
-def _duplicate_case_ids(suite: dict) -> bool:
-    ids = [c["id"] for c in suite["cases"]]
+def _duplicate_check_ids(suite: dict) -> bool:
+    ids = [c["id"] for c in suite["checks"]]
     return len(ids) != len(set(ids))
-
-
-def _unknown_applies_to_ids(suite: dict) -> list:
-    case_ids = {c["id"] for c in suite["cases"]}
-    missing = []
-    for check in suite["checks"]:
-        for case_id in check.get("applies_to", []):
-            if case_id not in case_ids:
-                missing.append((check["id"], case_id))
-    return missing
 
 
 def _unknown_check_kinds(suite: dict, check_kinds: list) -> list:
@@ -178,40 +173,12 @@ def _unknown_check_kinds(suite: dict, check_kinds: list) -> list:
     return [check["id"] for check in suite["checks"] if check["kind"] not in known]
 
 
-def _missing_data_refs(suite: dict) -> list:
-    """For every check with a params.truth_ref, every case it resolves to (via
-    applies_to, defaulting to all cases) must supply that key in data_refs."""
-    cases_by_id = {c["id"]: c for c in suite["cases"]}
-    all_case_ids = list(cases_by_id.keys())
-    missing = []
-    for check in suite["checks"]:
-        truth_ref = check["params"].get("truth_ref")
-        if truth_ref is None:
-            continue
-        resolved_ids = check.get("applies_to", all_case_ids)
-        for case_id in resolved_ids:
-            case = cases_by_id.get(case_id)
-            if case is None:
-                continue  # caught separately by _unknown_applies_to_ids
-            if truth_ref not in case.get("data_refs", {}):
-                missing.append((check["id"], case_id, truth_ref))
-    return missing
-
-
-def test_duplicate_case_ids_rejected():
+def test_duplicate_check_ids_rejected(check_kinds):
     valid_suite = _load_json(FIXTURES_DIR / "valid_validation_suite.json")
-    assert not _duplicate_case_ids(valid_suite)
+    assert not _duplicate_check_ids(valid_suite)
 
     broken_suite = _load_json(FIXTURES_DIR / "invalid_suite_cross_checks.json")
-    assert _duplicate_case_ids(broken_suite)
-
-
-def test_unknown_applies_to_case_rejected():
-    valid_suite = _load_json(FIXTURES_DIR / "valid_validation_suite.json")
-    assert _unknown_applies_to_ids(valid_suite) == []
-
-    broken_suite = _load_json(FIXTURES_DIR / "invalid_suite_cross_checks.json")
-    assert _unknown_applies_to_ids(broken_suite) != []
+    assert _duplicate_check_ids(broken_suite)
 
 
 def test_unknown_check_kind_rejected(check_kinds):
@@ -220,11 +187,3 @@ def test_unknown_check_kind_rejected(check_kinds):
 
     broken_suite = _load_json(FIXTURES_DIR / "invalid_suite_cross_checks.json")
     assert _unknown_check_kinds(broken_suite, check_kinds) != []
-
-
-def test_checks_data_refs_present_on_applicable_cases():
-    valid_suite = _load_json(FIXTURES_DIR / "valid_validation_suite.json")
-    assert _missing_data_refs(valid_suite) == []
-
-    broken_suite = _load_json(FIXTURES_DIR / "invalid_suite_cross_checks.json")
-    assert _missing_data_refs(broken_suite) != []

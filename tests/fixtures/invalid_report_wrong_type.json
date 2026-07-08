@@ -4,12 +4,9 @@
   "generated_at": "2026-06-15T00:00:00Z",
   "results": [
     {
-      "case_id": "case_001",
-      "check_id": "check_001",
-      "value": "not-a-number",
-      "unit": "kg/m^3",
-      "plots": [],
-      "passed": true
+      "id": 123,
+      "kind": "rmse_timeseries",
+      "output": { "value": 4.8e-13, "unit": "kg/m^3", "passed": true }
     }
   ]
 }

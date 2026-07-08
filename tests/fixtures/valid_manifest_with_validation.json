@@ -13,7 +13,10 @@
     "suite_content_version": 1,
     "validated_at": "2026-06-15T00:00:00Z",
     "report_file": "validation_report.json",
-    "summary": { "rmse_timeseries_case_003": 4.8e-13, "satellite_lineout_case_004": 6.2e-13 }
+    "summary": {
+      "rmse_storm_period": { "value": 4.8e-13, "unit": "kg/m^3", "passed": true },
+      "satellite_lineout_storm": { "value": 6.2e-13, "unit": "kg/m^3", "passed": null }
+    }
   },
   "ensemble_fusion_decoder": {
     "seq_len": 3,

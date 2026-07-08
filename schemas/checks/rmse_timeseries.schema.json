@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schemas/checks/rmse_timeseries.schema.json",
   "title": "ROPE validation check kind: rmse_timeseries",
-  "description": "Shape of a check's params block when check.kind == 'rmse_timeseries'. Computes RMSE of model output against a reference/truth data source over the full duration of each applicable case. `truth_ref` names a key expected in the case's data_refs map (not a path itself — the actual path is resolved per-case at runtime; whether every applicable case actually supplies that data_refs key is NOT enforced by this schema, see validation-suite.schema.json's description and tests/validation_suite_test.py::test_checks_data_refs_present_on_applicable_cases).",
+  "description": "Fields of a check object (besides id/kind) when kind == 'rmse_timeseries'. Forecasts [start, end] and computes RMSE against a truth CSV over that window. truth_csv is a plain path (resolved relative to the suite JSON's own directory) — this kind owns its own truth-data reference, there is no shared data_refs indirection.",
   "type": "object",
   "$defs": {
     "threshold": {
@@ -16,22 +16,24 @@
     }
   },
   "properties": {
-    "truth_ref": { "type": "string", "minLength": 1 },
+    "start": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$" },
+    "end":   { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$" },
+    "truth_csv": { "type": "string", "minLength": 1, "description": "Path to a CSV with datetime,lst,lat,alt_km,density[,uncertainty] columns, relative to the suite JSON's directory." },
     "variable": {
       "type": "string",
       "enum": ["density", "uncertainty"],
-      "default": "density",
-      "description": "Which grid variable (per docs/grid.md) this check scores. Defaults to density; uncertainty is included so a future check can validate uncertainty calibration without a schema change."
+      "default": "density"
     },
     "threshold": {
       "$ref": "#/$defs/threshold",
-      "description": "Optional pass/fail bound(s) on the computed RMSE value. Pass requires value <= max (when max present) AND value >= min (when min present); at least one of max/min must be present. Evaluation is performed by whatever runs the check, not by this schema."
+      "description": "Optional pass/fail bound(s) on the computed RMSE. Evaluated by the check function itself, not by this schema."
     },
     "unit": { "type": "string", "minLength": 1 }
   },
-  "required": ["truth_ref"],
+  "required": ["start", "end", "truth_csv"],
   "additionalProperties": false,
   "examples": [
-    { "truth_ref": "reference_density_csv", "variable": "density", "threshold": { "max": 5.0e-13 }, "unit": "kg/m^3" }
+    { "start": "2018-06-01 00:00:00", "end": "2018-06-05 00:00:00",
+      "truth_csv": "truth_case_001.csv", "variable": "density", "threshold": { "max": 5.0e-13 }, "unit": "kg/m^3" }
   ]
 }

@@ -42,8 +42,8 @@
         },
         "summary": {
           "type": "object",
-          "additionalProperties": { "type": "number" },
-          "description": "Generic named-scalar map for quick human/CI scanning, e.g. {\"rmse_timeseries_case_003\": 4.8e-13}. Key names are check-id/case-id-dependent by convention, not schema-enforced."
+          "additionalProperties": true,
+          "description": "Every check's own output, keyed by check id, e.g. {\"rmse_quiet_period\": {\"value\": 4.8e-13, \"unit\": \"kg/m^3\", \"passed\": true}}. Values are whatever each check's function returned (validation-report.schema.json's result.output) — no shape is shared or schema-enforced across checks."
         }
       },
       "required": ["suite_content_version", "validated_at", "report_file", "summary"],

@@ -4,44 +4,30 @@
   "generated_at": "2026-06-15T00:00:00Z",
   "results": [
     {
-      "case_id": "case_001",
-      "check_id": "check_001",
-      "value": null,
-      "unit": null,
-      "plots": ["plots/case_001_check_001_lonlat_200km.png", "plots/case_001_check_001_lonlat_400km.png", "plots/case_001_check_001_lonlat_600km.png"],
-      "passed": null
+      "id": "lonlat_snapshot_quiet",
+      "kind": "lonlat_density_plot",
+      "output": {
+        "plots": [
+          "plots/lonlat_snapshot_quiet_200km.png",
+          "plots/lonlat_snapshot_quiet_400km.png",
+          "plots/lonlat_snapshot_quiet_600km.png"
+        ]
+      }
     },
     {
-      "case_id": "case_003",
-      "check_id": "check_002",
-      "value": 4.8e-13,
-      "unit": "kg/m^3",
-      "plots": [],
-      "passed": true
+      "id": "lonlat_snapshot_storm",
+      "kind": "lonlat_density_plot",
+      "output": { "plots": ["plots/lonlat_snapshot_storm_400km.png"] }
     },
     {
-      "case_id": "case_003",
-      "check_id": "check_003",
-      "value": 6.2e-13,
-      "unit": "kg/m^3",
-      "plots": ["plots/case_003_check_003_sat_lineout.png"],
-      "passed": null
+      "id": "rmse_storm_period",
+      "kind": "rmse_timeseries",
+      "output": { "value": 4.8e-13, "unit": "kg/m^3", "passed": true }
     },
     {
-      "case_id": "case_004",
-      "check_id": "check_002",
-      "value": 5.9e-13,
-      "unit": "kg/m^3",
-      "plots": [],
-      "passed": false
-    },
-    {
-      "case_id": "case_004",
-      "check_id": "check_003",
-      "value": 7.1e-13,
-      "unit": "kg/m^3",
-      "plots": ["plots/case_004_check_003_sat_lineout.png"],
-      "passed": null
+      "id": "satellite_lineout_storm",
+      "kind": "satellite_lineout",
+      "output": { "value": 6.2e-13, "unit": "kg/m^3", "passed": null, "plots": ["plots/satellite_lineout_storm.png"] }
     }
   ]
 }

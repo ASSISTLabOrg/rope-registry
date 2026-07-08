@@ -2,18 +2,28 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schemas/checks/lonlat_density_plot.schema.json",
   "title": "ROPE validation check kind: lonlat_density_plot",
-  "description": "Shape of a check's params block when check.kind == 'lonlat_density_plot'. Renders a lon/lat density map at each requested altitude for a representative time within the case's window. Pure visualization — produces plot image(s) only, no scalar score. `value`/`unit`/`passed` in the resulting validation-report entries are always null for this kind.",
+  "description": "Fields of a check object (besides id/kind) when kind == 'lonlat_density_plot'. Renders a lon/lat density map at each requested altitude for a single time point, forecasting a small window ending at that point. Pure visualization — no scalar score.",
   "type": "object",
   "properties": {
+    "time_point": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$",
+      "description": "The instant to render."
+    },
+    "time_window_hours": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Forecast window length ending at time_point, giving the model enough history to make time_point queryable."
+    },
     "altitudes_km": {
       "type": "array",
       "items": { "type": "number", "minimum": 100, "maximum": 980 },
       "minItems": 1
     }
   },
-  "required": ["altitudes_km"],
+  "required": ["time_point", "time_window_hours", "altitudes_km"],
   "additionalProperties": false,
   "examples": [
-    { "altitudes_km": [200, 400, 600] }
+    { "time_point": "2018-06-02 12:00:00", "time_window_hours": 6, "altitudes_km": [200, 400, 600] }
   ]
 }
