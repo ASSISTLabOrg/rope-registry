@@ -1,7 +1,7 @@
 [
   {
-    "kind": "ensemble_fusion_decoder",
-    "schema": "schemas/kinds/ensemble_fusion_decoder.schema.json",
+    "kind": "stacked_ensemble",
+    "schema": "schemas/kinds/stacked_ensemble.schema.json",
     "status": "stable"
   }
 ]

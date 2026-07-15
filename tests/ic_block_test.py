@@ -27,7 +27,7 @@ def envelope_schema():
 
 @pytest.fixture(scope="module")
 def kind_schema():
-    return _load_json(SCHEMAS_DIR / "kinds" / "ensemble_fusion_decoder.schema.json")
+    return _load_json(SCHEMAS_DIR / "kinds" / "stacked_ensemble.schema.json")
 
 
 @pytest.fixture(scope="module")
@@ -81,7 +81,7 @@ def test_valid_manifest_ic_block_resolves_and_validates(envelope_schema, kind_sc
     manifest = _load_json(FIXTURES_DIR / "valid_manifest.json")
     Draft202012Validator(envelope_schema).validate(manifest)
 
-    kind_block = manifest["ensemble_fusion_decoder"]
+    kind_block = manifest["stacked_ensemble"]
     Draft202012Validator(kind_schema).validate(kind_block)
 
     ic_block = kind_block["ic"]
@@ -92,19 +92,19 @@ def test_valid_manifest_ic_block_resolves_and_validates(envelope_schema, kind_sc
 def test_invalid_kind_missing_ic_fails(kind_schema):
     manifest = _load_json(FIXTURES_DIR / "invalid_kind_missing_ic.json")
     with pytest.raises(ValidationError):
-        Draft202012Validator(kind_schema).validate(manifest["ensemble_fusion_decoder"])
+        Draft202012Validator(kind_schema).validate(manifest["stacked_ensemble"])
 
 
 def test_invalid_ic_missing_grid_axes_fails(ic_lookup_table_schema):
     manifest = _load_json(FIXTURES_DIR / "invalid_ic_missing_grid_axes.json")
-    ic_block = manifest["ensemble_fusion_decoder"]["ic"]
+    ic_block = manifest["stacked_ensemble"]["ic"]
     with pytest.raises(ValidationError):
         Draft202012Validator(ic_lookup_table_schema).validate(ic_block["params"])
 
 
 def test_invalid_ic_bad_kind_rejected(kind_schema, ic_kinds):
     manifest = _load_json(FIXTURES_DIR / "invalid_ic_bad_kind.json")
-    kind_block = manifest["ensemble_fusion_decoder"]
+    kind_block = manifest["stacked_ensemble"]
     # Passes JSON Schema — "kind" is just a string at this level.
     Draft202012Validator(kind_schema).validate(kind_block)
     # Fails the pytest-level cross-check against ic_kinds.json, same situation

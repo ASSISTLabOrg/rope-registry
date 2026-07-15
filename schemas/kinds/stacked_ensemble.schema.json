@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "schemas/kinds/ensemble_fusion_decoder.schema.json",
-  "title": "ROPE manifest kind: ensemble_fusion_decoder",
-  "description": "Shape of the manifest.ensemble_fusion_decoder block. Validate this against manifest['ensemble_fusion_decoder'], not against the whole manifest document.",
+  "$id": "schemas/kinds/stacked_ensemble.schema.json",
+  "title": "ROPE manifest kind: stacked_ensemble",
+  "description": "Shape of the manifest.stacked_ensemble block. Validate this against manifest['stacked_ensemble'], not against the whole manifest document.",
   "type": "object",
   "$defs": {
     "backend": {

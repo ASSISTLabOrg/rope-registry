@@ -36,7 +36,7 @@ Three steps:
 
 ## Initial condition (IC) block
 
-A model kind's schema (e.g. `ensemble_fusion_decoder.schema.json`) has an `ic` property: `{"kind": ..., "params": {...}}`, resolved against `ic_kinds.json`.
+A model kind's schema (e.g. `stacked_ensemble.schema.json`) has an `ic` property: `{"kind": ..., "params": {...}}`, resolved against `ic_kinds.json`.
 
 Current kind: `ic_lookup_table` — `params.grid_axes` (driver columns used as grid axes) and `params.file` (lookup-table artifact filename, lives in the model's `exported_dir`, supersedes the global `paths.ic_csv` config path in `docs/data-sources.md`). Status `"stable"` in `ic_kinds.json`.
 

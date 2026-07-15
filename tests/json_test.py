@@ -27,7 +27,7 @@ def envelope_schema():
 
 @pytest.fixture(scope="module")
 def kind_schema():
-    return _load_json(SCHEMAS_DIR / "kinds" / "ensemble_fusion_decoder.schema.json")
+    return _load_json(SCHEMAS_DIR / "kinds" / "stacked_ensemble.schema.json")
 
 
 def test_kinds_json_is_valid_array(kinds):
@@ -66,7 +66,7 @@ def test_kind_schema_examples_validate(kind_schema):
 def test_valid_manifest_fixture_validates_against_both_schemas(envelope_schema, kind_schema):
     manifest = _load_json(FIXTURES_DIR / "valid_manifest.json")
     Draft202012Validator(envelope_schema).validate(manifest)
-    Draft202012Validator(kind_schema).validate(manifest["ensemble_fusion_decoder"])
+    Draft202012Validator(kind_schema).validate(manifest["stacked_ensemble"])
 
 
 def test_invalid_envelope_missing_field_fails(envelope_schema):
@@ -84,19 +84,19 @@ def test_invalid_envelope_wrong_type_fails(envelope_schema):
 def test_invalid_kind_missing_field_fails(kind_schema):
     manifest = _load_json(FIXTURES_DIR / "invalid_kind_missing_field.json")
     with pytest.raises(ValidationError):
-        Draft202012Validator(kind_schema).validate(manifest["ensemble_fusion_decoder"])
+        Draft202012Validator(kind_schema).validate(manifest["stacked_ensemble"])
 
 
 def test_invalid_kind_bad_enum_fails(kind_schema):
     manifest = _load_json(FIXTURES_DIR / "invalid_kind_bad_enum.json")
     with pytest.raises(ValidationError):
-        Draft202012Validator(kind_schema).validate(manifest["ensemble_fusion_decoder"])
+        Draft202012Validator(kind_schema).validate(manifest["stacked_ensemble"])
 
 
 def test_valid_manifest_with_validation_fixture_validates(envelope_schema, kind_schema):
     manifest = _load_json(FIXTURES_DIR / "valid_manifest_with_validation.json")
     Draft202012Validator(envelope_schema).validate(manifest)
-    Draft202012Validator(kind_schema).validate(manifest["ensemble_fusion_decoder"])
+    Draft202012Validator(kind_schema).validate(manifest["stacked_ensemble"])
 
 
 def test_invalid_envelope_missing_validated_fails(envelope_schema):

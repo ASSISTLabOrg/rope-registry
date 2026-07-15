@@ -22,6 +22,21 @@
       "minItems": 1
     },
     "driver_source": { "type": "string", "minLength": 1 },
+    "grid": {
+      "type": "object",
+      "description": "Physical shape of this model's output grid. Kind-agnostic — every model declares the grid it was exported on; there is no longer a single grid shape shared by all models. LST's range is always the full 24h cycle by definition of what LST is, so only its bin count is declared; lat/alt each declare both a bin count and a physical range. Cross-field ordering (min < max) is validated by the consuming application, not by this schema.",
+      "properties": {
+        "n_lst": { "type": "integer", "minimum": 1 },
+        "n_lat": { "type": "integer", "minimum": 2 },
+        "n_alt": { "type": "integer", "minimum": 2 },
+        "lat_min_deg": { "type": "number" },
+        "lat_max_deg": { "type": "number" },
+        "alt_min_km": { "type": "number" },
+        "alt_max_km": { "type": "number" }
+      },
+      "required": ["n_lst", "n_lat", "n_alt", "lat_min_deg", "lat_max_deg", "alt_min_km", "alt_max_km"],
+      "additionalProperties": false
+    },
     "validated": {
       "type": "boolean",
       "description": "Whether this model has been validated against a rope-registry validation suite. Set manually by a human after reviewing the full validation_report.json (including plots) — never written automatically by any benchmarking tool. If true, `validation` must be present (see the conditional below)."
@@ -57,6 +72,7 @@
     "latent_dim",
     "driver_columns",
     "driver_source",
+    "grid",
     "validated"
   ],
   "additionalProperties": true,
@@ -70,20 +86,30 @@
   "examples": [
     {
       "schema_version": 1,
-      "kind": "ensemble_fusion_decoder",
+      "kind": "stacked_ensemble",
       "runtime_requirements": { "onnxruntime": "1.25", "libtorch": "2.7" },
       "latent_dim": 10,
       "driver_columns": ["f10", "kp", "t1", "t2", "t3", "t4"],
       "driver_source": "celestrak_sw",
+      "grid": {
+        "n_lst": 72, "n_lat": 36, "n_alt": 45,
+        "lat_min_deg": -87.5, "lat_max_deg": 87.5,
+        "alt_min_km": 100.0, "alt_max_km": 980.0
+      },
       "validated": false
     },
     {
       "schema_version": 1,
-      "kind": "ensemble_fusion_decoder",
+      "kind": "stacked_ensemble",
       "runtime_requirements": { "onnxruntime": "1.25", "libtorch": "2.7" },
       "latent_dim": 10,
       "driver_columns": ["f10", "kp", "t1", "t2", "t3", "t4"],
       "driver_source": "celestrak_sw",
+      "grid": {
+        "n_lst": 72, "n_lat": 36, "n_alt": 45,
+        "lat_min_deg": -87.5, "lat_max_deg": 87.5,
+        "alt_min_km": 100.0, "alt_max_km": 980.0
+      },
       "validated": true,
       "validation": {
         "suite_content_version": 1,
