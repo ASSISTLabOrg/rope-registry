@@ -13,6 +13,7 @@
     "lat_min_deg": -87.5, "lat_max_deg": 87.5,
     "alt_min_km": 100.0, "alt_max_km": 980.0
   },
+  "ic": { "kind": "ic_lookup_table", "params": { "grid_axes": ["f10", "kp"], "file": "ic_table.icbin" } },
   "validated": false,
   "stacked_ensemble": {
     "seq_len": 3,
@@ -29,7 +30,6 @@
         "alt_start": 0,
         "alt_end": 45
       }
-    ],
-    "ic": { "kind": "ic_lookup_table", "params": { "grid_axes": ["f10", "kp"], "file": "ic_table.icbin" } }
+    ]
   }
 }

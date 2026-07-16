@@ -16,8 +16,8 @@ def _load_json(path: Path):
 
 
 @pytest.fixture(scope="module")
-def kinds():
-    return _load_json(REPO_ROOT / "kinds.json")
+def pipeline_kinds():
+    return _load_json(REPO_ROOT / "pipeline_kinds.json")
 
 
 @pytest.fixture(scope="module")
@@ -30,16 +30,16 @@ def kind_schema():
     return _load_json(SCHEMAS_DIR / "kinds" / "stacked_ensemble.schema.json")
 
 
-def test_kinds_json_is_valid_array(kinds):
-    assert isinstance(kinds, list)
-    assert len(kinds) > 0
-    for entry in kinds:
+def test_pipeline_kinds_json_is_valid_array(pipeline_kinds):
+    assert isinstance(pipeline_kinds, list)
+    assert len(pipeline_kinds) > 0
+    for entry in pipeline_kinds:
         assert set(entry.keys()) == {"kind", "schema", "status"}
         assert (REPO_ROOT / entry["schema"]).is_file()
 
 
-def test_kinds_json_kinds_have_unique_names(kinds):
-    names = [entry["kind"] for entry in kinds]
+def test_pipeline_kinds_json_kinds_have_unique_names(pipeline_kinds):
+    names = [entry["kind"] for entry in pipeline_kinds]
     assert len(names) == len(set(names))
 
 

@@ -4,6 +4,24 @@
   "title": "ROPE model manifest envelope",
   "description": "Top-level, kind-agnostic fields of a per-model model_manifest.json. Validate this against the manifest's top-level fields; validate manifest[manifest.kind] separately against the matching schemas/kinds/<kind>.schema.json.",
   "type": "object",
+  "$defs": {
+    "ic_block": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Must appear in ic_kinds.json. Not enforceable by this schema — see tests/ic_block_test.py."
+        },
+        "params": {
+          "type": "object",
+          "description": "Kind-specific parameter block, validated in a third validation stage against schemas/ic/<kind>.schema.json — the same two-stage kind/params pattern used for the top-level manifest kind, applied one level deeper."
+        }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    }
+  },
   "properties": {
     "schema_version": { "type": "integer", "minimum": 1 },
     "kind": { "type": "string", "minLength": 1 },
@@ -37,6 +55,7 @@
       "required": ["n_lst", "n_lat", "n_alt", "lat_min_deg", "lat_max_deg", "alt_min_km", "alt_max_km"],
       "additionalProperties": false
     },
+    "ic": { "$ref": "#/$defs/ic_block" },
     "validated": {
       "type": "boolean",
       "description": "Whether this model has been validated against a rope-registry validation suite. Set manually by a human after reviewing the full validation_report.json (including plots) — never written automatically by any benchmarking tool. If true, `validation` must be present (see the conditional below)."
@@ -47,7 +66,7 @@
         "suite_content_version": {
           "type": "integer",
           "minimum": 1,
-          "description": "The content_version (see validation-suite.schema.json) of the suite this model was validated against. Compare against the registry's current suite content_version to detect staleness; only meaningful when compared against a suite sharing the same schema_version."
+          "description": "The content_version of the validation suite (rope-dev-tools) this model was validated against. Compare against the suite's current content_version to detect staleness; only meaningful when compared against a suite sharing the same schema_version."
         },
         "validated_at": { "type": "string", "format": "date-time" },
         "report_file": {
@@ -58,7 +77,7 @@
         "summary": {
           "type": "object",
           "additionalProperties": true,
-          "description": "Every check's own output, keyed by check id, e.g. {\"rmse_quiet_period\": {\"value\": 4.8e-13, \"unit\": \"kg/m^3\", \"passed\": true}}. Values are whatever each check's function returned (validation-report.schema.json's result.output) — no shape is shared or schema-enforced across checks."
+          "description": "Every check's own output, keyed by check id, e.g. {\"rmse_quiet_period\": {\"value\": 4.8e-13, \"unit\": \"kg/m^3\", \"passed\": true}}. Values are whatever each check's function returned — no shape is shared or schema-enforced across checks (see rope-dev-tools' validation/checks/)."
         }
       },
       "required": ["suite_content_version", "validated_at", "report_file", "summary"],
@@ -73,6 +92,7 @@
     "driver_columns",
     "driver_source",
     "grid",
+    "ic",
     "validated"
   ],
   "additionalProperties": true,
@@ -96,6 +116,10 @@
         "lat_min_deg": -87.5, "lat_max_deg": 87.5,
         "alt_min_km": 100.0, "alt_max_km": 980.0
       },
+      "ic": {
+        "kind": "ic_lookup_table",
+        "params": { "grid_axes": ["f10", "kp"], "file": "ic_table.icbin" }
+      },
       "validated": false
     },
     {
@@ -109,6 +133,10 @@
         "n_lst": 72, "n_lat": 36, "n_alt": 45,
         "lat_min_deg": -87.5, "lat_max_deg": 87.5,
         "alt_min_km": 100.0, "alt_max_km": 980.0
+      },
+      "ic": {
+        "kind": "ic_lookup_table",
+        "params": { "grid_axes": ["f10", "kp"], "file": "ic_table.icbin" }
       },
       "validated": true,
       "validation": {
